@@ -28,7 +28,7 @@ export default function RegisterPage() {
               Join Mr. Kim
             </h1>
             <p className="text-lg text-gray-600">
-              Choose how you want to get started
+              Choose how you want to get started with us
             </p>
           </div>
 
