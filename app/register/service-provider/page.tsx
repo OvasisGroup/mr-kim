@@ -20,6 +20,7 @@ export default function ServiceProviderRegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
+    username: '',
     email: '',
     phone: '',
     password: '',
@@ -43,10 +44,14 @@ export default function ServiceProviderRegisterPage() {
 
     try {
       // Register user
-      const registerData: { password: string; role: string; email?: string; phone?: string } = {
+      const registerData: { password: string; role: string; username?: string; email?: string; phone?: string } = {
         password: formData.password,
         role: 'SERVICE_PROVIDER',
       };
+
+      if (formData.username) {
+        registerData.username = formData.username;
+      }
 
       if (registrationType === 'email') {
         registerData.email = formData.email;
@@ -105,6 +110,19 @@ export default function ServiceProviderRegisterPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Account Information</h3>
                   
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username (optional)</Label>
+                    <Input
+                      id="username"
+                      type="text"
+                      placeholder="johndoe"
+                      value={formData.username}
+                      onChange={(e) =>
+                        setFormData({ ...formData, username: e.target.value })
+                      }
+                    />
+                  </div>
+
                   <div className="space-y-2">
                     <Label>Register with</Label>
                     <div className="flex gap-4">

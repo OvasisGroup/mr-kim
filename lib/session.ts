@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 
 export interface SessionData {
   userId: string;
+  username?: string;
   email?: string;
   phone?: string;
   role: 'CUSTOMER' | 'VENDOR' | 'SERVICE_PROVIDER' | 'ADMIN';

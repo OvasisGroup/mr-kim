@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, phone, password, role } = await req.json();
+    const { username, email, phone, password, role } = await req.json();
 
     if ((!email && !phone) || !password || !role) {
       return NextResponse.json(
@@ -25,12 +25,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check if username already exists
+    if (username) {
+      const existingUsername = await prisma.user.findUnique({ where: { username } });
+      if (existingUsername) {
+        return NextResponse.json(
+          { error: 'Username already taken' },
+          { status: 409 }
+        );
+      }
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
     const user = await prisma.user.create({
       data: {
+        ...(username && { username }),
         ...(email && { email }),
         ...(phone && { phone }),
         password: hashedPassword,
@@ -45,6 +57,7 @@ export async function POST(req: NextRequest) {
         message: `User created successfully. Please verify your ${email ? 'email' : 'phone'}.`,
         user: {
           id: user.id,
+          username: user.username,
           email: user.email,
           phone: user.phone,
           role: user.role,

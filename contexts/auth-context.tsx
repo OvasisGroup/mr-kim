@@ -7,9 +7,11 @@ type Role = 'CUSTOMER' | 'VENDOR' | 'SERVICE_PROVIDER' | 'ADMIN';
 
 interface User {
   id: string;
+  username?: string;
   email?: string;
   phone?: string;
   role: Role;
+  avatarUrl?: string;
 }
 
 interface AuthContextType {

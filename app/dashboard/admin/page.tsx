@@ -3,11 +3,13 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
-import { Button } from '@/components/ui/button';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Users, ShoppingBag, TrendingUp, Shield } from 'lucide-react';
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { user, isLoading, logout } = useAuth();
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && (!user || user.role !== 'ADMIN')) {
@@ -23,42 +25,142 @@ export default function AdminDashboard() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <Button onClick={logout} variant="outline">
-            Sign Out
-          </Button>
-        </div>
-      </header>
+  const stats = [
+    {
+      title: 'Total Users',
+      value: '2,547',
+      icon: Users,
+      description: 'Registered users',
+      color: 'text-blue-600 bg-blue-50',
+    },
+    {
+      title: 'Total Orders',
+      value: '8,234',
+      icon: ShoppingBag,
+      description: 'All time orders',
+      color: 'text-green-600 bg-green-50',
+    },
+    {
+      title: 'Revenue',
+      value: 'KSh 12.4M',
+      icon: TrendingUp,
+      description: 'Total platform revenue',
+      color: 'text-purple-600 bg-purple-50',
+    },
+    {
+      title: 'Active Vendors',
+      value: '342',
+      icon: Shield,
+      description: 'Verified vendors',
+      color: 'text-orange-600 bg-orange-50',
+    },
+  ];
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-semibold mb-4">
-            Welcome, Admin!
-          </h2>
-          <p className="text-gray-600 mb-6">
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Welcome back, Admin!
+          </h1>
+          <p className="text-gray-600 mt-2">
             Manage users, vendors, and service providers from this dashboard.
           </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="border rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-2">Users</h3>
-              <p className="text-gray-600">Manage all registered users</p>
-            </div>
-            <div className="border rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-2">Vendors</h3>
-              <p className="text-gray-600">Review and verify vendors</p>
-            </div>
-            <div className="border rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-2">Service Providers</h3>
-              <p className="text-gray-600">Review and verify service providers</p>
-            </div>
-          </div>
         </div>
-      </main>
-    </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={stat.title}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">
+                    {stat.title}
+                  </CardTitle>
+                  <div className={`p-2 rounded-lg ${stat.color}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                  <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Users</CardTitle>
+              <CardDescription>Manage all registered users</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Customers</span>
+                  <span className="font-medium">1,234</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Vendors</span>
+                  <span className="font-medium">342</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Service Providers</span>
+                  <span className="font-medium">971</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Vendors</CardTitle>
+              <CardDescription>Review and verify vendors</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Verified</span>
+                  <span className="font-medium text-green-600">342</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Pending</span>
+                  <span className="font-medium text-orange-600">23</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Suspended</span>
+                  <span className="font-medium text-red-600">8</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Service Providers</CardTitle>
+              <CardDescription>Review and verify service providers</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Verified</span>
+                  <span className="font-medium text-green-600">971</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Pending</span>
+                  <span className="font-medium text-orange-600">45</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Suspended</span>
+                  <span className="font-medium text-red-600">12</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </DashboardLayout>
   );
 }

@@ -20,6 +20,7 @@ export default function CustomerRegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
+    username: '',
     email: '',
     phone: '',
     password: '',
@@ -42,10 +43,14 @@ export default function CustomerRegisterPage() {
     setIsLoading(true);
 
     try {
-      const registerData: { password: string; role: string; email?: string; phone?: string } = {
+      const registerData: { password: string; role: string; username?: string; email?: string; phone?: string } = {
         password: formData.password,
         role: 'CUSTOMER',
       };
+
+      if (formData.username) {
+        registerData.username = formData.username;
+      }
 
       if (registrationType === 'email') {
         registerData.email = formData.email;
@@ -101,6 +106,19 @@ export default function CustomerRegisterPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username (optional)</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="johndoe"
+                    value={formData.username}
+                    onChange={(e) =>
+                      setFormData({ ...formData, username: e.target.value })
+                    }
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label>Register with</Label>
                   <div className="flex gap-4">

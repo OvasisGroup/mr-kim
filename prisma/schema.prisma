@@ -1,12 +1,201 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id                     String                  @id @default(cuid())
+  email                  String?                 @unique
+  phone                  String?                 @unique
+  password               String?
+  role                   Role                    @default(CUSTOMER)
+  emailVerified          Boolean                 @default(false)
+  phoneVerified          Boolean                 @default(false)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  firstName              String?
+  lastName               String?
+  address                String?
+  city                   String?
+  bio                    String?
+  avatarUrl              String?
+  emailNotifications     Boolean                 @default(true)
+  pushNotifications      Boolean                 @default(true)
+  smsNotifications       Boolean                 @default(false)
+  profileVisible         Boolean                 @default(true)
+  showEmail              Boolean                 @default(false)
+  showPhone              Boolean                 @default(false)
+  username               String?                 @unique
+  googleCalendarToken    String?
+  googleCalendarRefresh  String?
+  otpCodes               OtpCode[]
+  serviceProviderProfile ServiceProviderProfile?
+  vendorProfile          VendorProfile?
+  customerBookings       Booking[]               @relation("CustomerBookings")
+  providerBookings       Booking[]               @relation("ProviderBookings")
+  conversationsAsUser1   Conversation[]          @relation("ConversationUser1")
+  conversationsAsUser2   Conversation[]          @relation("ConversationUser2")
+  sentMessages           Message[]
+  payerPayments          Payment[]               @relation("PayerPayments")
+  recipientPayments      Payment[]               @relation("RecipientPayments")
+
+  @@index([email])
+  @@index([phone])
+  @@index([username])
+}
+
+model VendorProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  businessName    String
+  businessAddress String?
+  description     String?
+  verified        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ServiceProviderProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  serviceName String
+  serviceType String
+  description String?
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OtpCode {
+  id         String   @id @default(cuid())
+  userId     String?
+  identifier String
+  code       String
+  type       String
+  consumed   Boolean  @default(false)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([identifier, type])
+}
+
+model Booking {
+  id                    String        @id @default(cuid())
+  customerId            String
+  providerId            String
+  serviceType           String
+  serviceName           String
+  description           String?
+  bookingDate           DateTime
+  duration              Int           @default(60) // duration in minutes
+  status                BookingStatus @default(PENDING)
+  notes                 String?
+  googleCalendarEventId String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  customer              User          @relation("CustomerBookings", fields: [customerId], references: [id], onDelete: Cascade)
+  provider              User          @relation("ProviderBookings", fields: [providerId], references: [id], onDelete: Cascade)
+  payments              Payment[]
+
+  @@index([customerId])
+  @@index([providerId])
+  @@index([bookingDate])
+  @@index([status])
+}
+
+model Category {
+  id             String         @id @default(cuid())
+  categoryName   String         @unique
+  categoryIcon   String?
+  description    String?
+  image          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  subCategories  SubCategory[]
+
+  @@index([categoryName])
+}
+
+model SubCategory {
+  id                String   @id @default(cuid())
+  subCategoryName   String
+  subCategoryIcon   String?
+  description       String?
+  image             String?
+  categoryId        String
+  category          Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([categoryId, subCategoryName])
+  @@index([categoryId])
+  @@index([subCategoryName])
+}
+
+model Conversation {
+  id           String    @id @default(cuid())
+  participant1 String
+  participant2 String
+  user1        User      @relation("ConversationUser1", fields: [participant1], references: [id], onDelete: Cascade)
+  user2        User      @relation("ConversationUser2", fields: [participant2], references: [id], onDelete: Cascade)
+  lastMessage  String?
+  lastMessageAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  messages     Message[]
+
+  @@unique([participant1, participant2])
+  @@index([participant1])
+  @@index([participant2])
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String       @db.Text
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([isRead])
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  bookingId       String?
+  payerId         String
+  recipientId     String?
+  amount          Float
+  currency        String        @default("USD")
+  paymentMethod   PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  transactionId   String?       @unique
+  description     String?
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  payer           User          @relation("PayerPayments", fields: [payerId], references: [id], onDelete: Cascade)
+  recipient       User?         @relation("RecipientPayments", fields: [recipientId], references: [id], onDelete: SetNull)
+  booking         Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  @@index([payerId])
+  @@index([recipientId])
+  @@index([bookingId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 enum Role {
@@ -16,59 +205,29 @@ enum Role {
   ADMIN
 }
 
-model User {
-  id            String   @id @default(cuid())
-  email         String?  @unique
-  phone         String?  @unique
-  password      String?
-  role          Role     @default(CUSTOMER)
-  emailVerified Boolean  @default(false)
-  phoneVerified Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  vendorProfile          VendorProfile?
-  serviceProviderProfile ServiceProviderProfile?
-  otpCodes               OtpCode[]
-
-  @@index([email])
-  @@index([phone])
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
 }
 
-model VendorProfile {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  businessName    String
-  businessAddress String?
-  description     String?
-  verified        Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  PAYPAL
+  STRIPE
+  CASH
+  OTHER
 }
 
-model ServiceProviderProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  serviceName String
-  serviceType String
-  description String?
-  verified    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model OtpCode {
-  id        String   @id @default(cuid())
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  identifier String  // email or phone
-  code      String   // hashed OTP
-  type      String   // "EMAIL" or "PHONE"
-  consumed  Boolean  @default(false)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  @@index([identifier, type])
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
 }

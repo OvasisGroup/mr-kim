@@ -17,6 +17,16 @@ export async function POST(req: NextRequest) {
     // Find user
     const user = await prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        phone: true,
+        password: true,
+        role: true,
+        emailVerified: true,
+        avatarUrl: true,
+      },
     });
 
     if (!user || !user.password) {
@@ -47,6 +57,7 @@ export async function POST(req: NextRequest) {
     // Create session
     const session = await getSession();
     session.userId = user.id;
+    session.username = user.username || undefined;
     session.email = user.email || undefined;
     session.role = user.role;
     session.isLoggedIn = true;
@@ -57,9 +68,11 @@ export async function POST(req: NextRequest) {
         message: 'Login successful',
         user: {
           id: user.id,
+          username: user.username,
           email: user.email,
           phone: user.phone,
           role: user.role,
+          avatarUrl: user.avatarUrl,
         },
       },
       { status: 200 }
